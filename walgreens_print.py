@@ -3,7 +3,7 @@
 import os
 import logging
 from config_manager import load_config
-from image_validator import collect_image_files, validate_images, is_valid_extension, is_valid_filename
+from image_validator import collect_image_files as original_collect_image_files, validate_images, is_valid_extension, is_valid_filename
 from api_integration import WalgreensAPI
 
 def main():
@@ -13,7 +13,7 @@ def main():
         config = load_config()
 
         # Collect and validate images
-        image_paths = collect_image_files(config['input_path'])
+        image_paths = collect_image_files(config['input_path'], temp_files)
         validate_images(image_paths)
 
         # Initialize API client
@@ -35,7 +35,7 @@ def main():
         # Ensure cleanup is performed
         cleanup(temp_files)
 
-def collect_image_files(input_path):
+def collect_image_files(input_path, temp_files):
     # Collect image files and return their paths
     temp_file = "tempfile.tmp"
     with open(temp_file, 'w') as f:
