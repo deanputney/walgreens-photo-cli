@@ -3,7 +3,7 @@
 import os
 import logging
 from config_manager import load_config
-from image_validator import collect_image_files, validate_images
+from image_validator import collect_image_files, validate_images, is_valid_extension, is_valid_filename
 from api_integration import WalgreensAPI
 
 def main():
