@@ -1,5 +1,3 @@
-# config_manager.py
-
 import os
 import yaml
 from pathlib import Path
