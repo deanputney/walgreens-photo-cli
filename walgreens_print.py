@@ -1,19 +1,34 @@
 # walgreens_print.py
 
 import os
+import sys
 import logging
-from config_manager import load_config
+from argparse import ArgumentParser
+from config_manager import load_config, create_config
 from image_validator import collect_image_files as original_collect_image_files, validate_images, is_valid_extension, is_valid_filename
 from api_integration import WalgreensAPI
 
+def parse_arguments():
+    parser = ArgumentParser(description="Submit images for printing via Walgreens API.")
+    parser.add_argument('input_path', help='Path to a single image file or directory of images.')
+    return parser.parse_args()
+
 def main():
     temp_files = []
+    args = parse_arguments()
+    
     try:
         # Load configuration
         config = load_config()
 
-        # Collect and validate images
-        image_paths = collect_image_files(config['input_path'], temp_files)
+        # Validate input path
+        if os.path.isfile(args.input_path):
+            image_paths = [args.input_path]
+        elif os.path.isdir(args.input_path):
+            image_paths = collect_image_files(args.input_path, temp_files)
+        else:
+            raise ValueError(f"Invalid input path: {args.input_path}")
+
         validate_images(image_paths)
 
         # Initialize API client
