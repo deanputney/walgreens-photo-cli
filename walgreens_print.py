@@ -1,53 +1,62 @@
-# config_manager.py
+# walgreens_print.py
 
 import os
-import yaml
-from pathlib import Path
+import logging
+from config_manager import load_config
+from image_validator import collect_image_files, validate_images
+from api_integration import WalgreensAPI
 
-CONFIG_PATH = Path.home() / '.config' / 'walgreens-print' / 'config.yaml'
-
-def create_config():
-    # Ensure the directory exists
-    CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
-    
-    # Prompt user for configuration details
-    api_key = input("Enter API key: ").strip()
-    affiliate_id = input("Enter Affiliate ID: ").strip()
-    store_id = input("Enter Store ID: ").strip()
-
-    config_data = {
-        'api_key': api_key,
-        'affiliate_id': affiliate_id,
-        'store_id': store_id
-    }
-
-    # Write the configuration to a YAML file
-    with open(CONFIG_PATH, 'w') as config_file:
-        yaml.dump(config_data, config_file)
-
-def load_config():
-    if not CONFIG_PATH.exists():
-        create_config()
-
+def main():
+    temp_files = []
     try:
-        with open(CONFIG_PATH, 'r') as config_file:
-            config_data = yaml.safe_load(config_file)
-        
-        # Validate required fields
-        for field in ['api_key', 'affiliate_id', 'store_id']:
-            if not config_data.get(field):
-                raise ValueError(f"Error: Missing required field '{field}' in config file")
-        
-        return config_data
+        # Load configuration
+        config = load_config()
 
-    except yaml.YAMLError as e:
-        print(f"Error reading the configuration file: {e}")
-        exit(1)
-    except ValueError as e:
-        print(e)
+        # Collect and validate images
+        image_paths = collect_image_files(config['input_path'])
+        validate_images(image_paths)
+
+        # Initialize API client
+        api_client = WalgreensAPI()
+
+        # Process each image
+        for image_path in image_paths:
+            payload = api_client.prepare_payload([image_path])
+            response = api_client.send_order(payload)
+            api_client.handle_response(response)
+
+    except Exception as e:
+        logging.error(f"An error occurred: {e}")
+        print(f"Error: {e}. Terminating program.")
+        cleanup(temp_files)
         exit(1)
 
-if __name__ == '__main__':
-    # For testing purposes, you can call load_config() here
-    config = load_config()
-    print("Configuration loaded successfully:", config)
+    finally:
+        # Ensure cleanup is performed
+        cleanup(temp_files)
+
+def collect_image_files(input_path):
+    # Collect image files and return their paths
+    temp_file = "tempfile.tmp"
+    with open(temp_file, 'w') as f:
+        pass  # Simulate file creation
+    temp_files.append(temp_file)
+    return [os.path.join(input_path, f) for f in os.listdir(input_path)]
+
+def validate_images(image_paths):
+    # Validate images and raise exceptions if invalid
+    for path in image_paths:
+        if not is_valid_extension(path):
+            raise ValueError(f"Invalid file extension: {path}")
+        if not is_valid_filename(path):
+            raise ValueError(f"Invalid filename: {path}")
+
+def cleanup(temp_files):
+    for temp_file in temp_files:
+        try:
+            os.remove(temp_file)
+        except OSError as e:
+            logging.warning(f"Failed to delete temporary file {temp_file}: {e}")
+
+if __name__ == "__main__":
+    main()
