@@ -1,0 +1,11 @@
+Metadata-Version: 2.2
+Name: walgreens-print
+Version: 1.0.0
+Summary: CLI tool to print photos at Walgreens
+Author: Walgreens Print Team
+Requires-Dist: pyyaml>=6.0
+Requires-Dist: pillow>=9.0.0
+Requires-Dist: requests>=2.28.0
+Dynamic: author
+Dynamic: requires-dist
+Dynamic: summary
