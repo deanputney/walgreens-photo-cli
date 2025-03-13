@@ -273,15 +273,9 @@ class WalgreensApiClient:
     def __init__(self):
         """Initialize the Walgreens API client with credentials."""
         self.api_key = get_api_key()
-        self.affiliate_id = get_api_secret()  # Using api_secret as affiliate_id for photo printing
+        self.affiliate_id = get_api_secret()  # Using api_secret as affiliate_id
         self.session = requests.Session()
         self.logger = logging.getLogger(__name__)
-        
-        # Walgreens API uses different affiliate IDs for different services:
-        # - PhotoPrints: photoapi
-        # - Store Locator: storesapi
-        # - RxRefill & Transfer: rxapi
-        # - Balance Rewards: brctest
         
         # Base URLs from documentation
         environment = os.environ.get("WALGREENS_API_ENVIRONMENT", "production")
@@ -506,12 +500,10 @@ class WalgreensApiClient:
                 product["qty"] = product["quantity"]
                 del product["quantity"]
         
-        # Use the correct affiliate ID for store locator API
-        store_affiliate_id = "storesapi"
-        
+        # Use the affiliate ID from config instead of hardcoding
         payload = {
             "apiKey": self.api_key,
-            "affId": store_affiliate_id,  # Using store-specific affiliate ID
+            "affId": self.affiliate_id,  # Using affiliate ID from config
             "latitude": str(latitude),
             "longitude": str(longitude),
             "radius": "20",  # 20-mile radius

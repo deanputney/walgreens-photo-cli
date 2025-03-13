@@ -57,9 +57,42 @@ def main():
             uploaded_url = api_client.upload_image(image_path)
             uploaded_urls.append(uploaded_url)
         
-        # When preparing product details - move this earlier in the code
-        # Define product_id at the beginning, before store search
-        product_id = args.product_id if args.product_id else "6560003"  # 6560003 is the correct ID for 4x6 prints
+        # After initializing the API client and before defining product_id
+        # Get the correct product ID for 4x6 prints
+        try:
+            # Get available products
+            products = api_client.get_products("PRINTS")
+            
+            if args.verbose:
+                logging.debug(f"Found {len(products)} print products")
+            
+            # Look for 4x6 prints in the product list
+            found_product_id = None
+            for product in products:
+                product_id = product.get("productId", "")
+                product_desc = product.get("productDesc", "").lower()
+                product_size = product.get("productSize", "").lower()
+                
+                # Check if this is a 4x6 print product
+                if "4x6" in product_size or "4x6" in product_desc:
+                    found_product_id = product_id
+                    if args.verbose:
+                        logging.debug(f"Found 4x6 print product: {product_id} - {product_desc}")
+                    break
+            
+            # Use the found product ID or fall back to command line argument or default
+            if found_product_id:
+                product_id = found_product_id
+            else:
+                product_id = args.product_id if args.product_id else "6560003"
+                if args.verbose:
+                    logging.warning(f"No 4x6 print product found in API response, using specified or default ID: {product_id}")
+        except Exception as e:
+            logging.warning(f"Error finding product ID: {e}")
+            # Use default product ID if lookup fails
+            product_id = args.product_id if args.product_id else "6560003"
+            logging.warning(f"Using fallback product ID due to error: {product_id}")
+        
         if args.verbose:
             logging.debug(f"Using product ID: {product_id}")
         

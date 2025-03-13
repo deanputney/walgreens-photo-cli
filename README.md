@@ -43,7 +43,6 @@ On first run, the tool will prompt you for your Walgreens API credentials:
 
 - API Key
 - Affiliate ID
-- Store ID
 
 These credentials are stored in `~/.config/walgreens-print/config.yaml`.
 
